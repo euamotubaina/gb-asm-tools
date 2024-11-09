@@ -48,7 +48,7 @@ def main():
 					key = cur_label + sym
 				if key in sym_addrs:
 					addr = sym_addrs[key]
-					line = sym + rest + ' ; ' + addr
+					line = f"{sym}{rest} ; {addr}"
 			print(line)
 
 if __name__ == '__main__':
