@@ -15,56 +15,56 @@ import sys
 
 from mapreader import MapReader
 
+
 def main():
-	if len(sys.argv) < 2:
-		print(f'Usage: {sys.argv[0]} project.map [BANK=none]', file=sys.stderr)
-		sys.exit(1)
+    if len(sys.argv) < 2:
+        print(f"Usage: {sys.argv[0]} project.map [BANK=none]", file=sys.stderr)
+        sys.exit(1)
 
-	filename = sys.argv[1]
+    filename = sys.argv[1]
 
-	print_bank = 'none'
-	if len(sys.argv) > 2:
-		print_bank = sys.argv[2].removeprefix('BANK=')
+    print_bank = "none"
+    if len(sys.argv) > 2:
+        print_bank = sys.argv[2].removeprefix("BANK=")
 
-	if print_bank not in {'all', 'none'}:
-		try:
-			print_bank = (int(print_bank[2:], 16)
-				if print_bank.startswith(('0x', '0X'))
-				else int(print_bank))
-		except ValueError:
-			error = f'Error: invalid BANK: {print_bank}'
-			if print_bank.isalnum():
-				error += f' (did you mean: 0x{print_bank}?)'
-			print(error, file=sys.stderr)
-			sys.exit(1)
+    if print_bank not in {"all", "none"}:
+        try:
+            print_bank = (int(print_bank[2:], 16) if print_bank.startswith(("0x", "0X")) else int(print_bank))
+        except ValueError:
+            error = f"Error: invalid BANK: {print_bank}"
+            if print_bank.isalnum():
+                error += f" (did you mean: 0x{print_bank}?)"
+            print(error, file=sys.stderr)
+            sys.exit(1)
 
-	num_banks = 0x80
-	bank_size = 0x4000 # bytes
-	total_size = num_banks * bank_size
+    num_banks = 0x80
+    bank_size = 0x4000  # bytes
+    total_size = num_banks * bank_size
 
-	reader = MapReader()
-	with open(filename, 'r', encoding='utf-8') as file:
-		reader.read_map_data(file.readlines())
+    reader = MapReader()
+    with open(filename, "r", encoding="utf-8") as file:
+        reader.read_map_data(file.readlines())
 
-	free_space = 0
-	per_bank = []
-	default_bank_data = {'sections': [], 'used': 0, 'slack': bank_size}
-	for bank in range(num_banks):
-		bank_data = reader.bank_data['ROM0 bank' if bank == 0 else 'ROMX bank']
-		data = bank_data.get(bank, default_bank_data)
-		used, slack = data['used'], data['slack']
-		per_bank.append((used, slack))
-		free_space += slack
+    free_space = 0
+    per_bank = []
+    default_bank_data = {"sections": [], "used": 0, "slack": bank_size}
+    for bank in range(num_banks):
+        bank_data = reader.bank_data["ROM0 bank" if bank == 0 else "ROMX bank"]
+        data = bank_data.get(bank, default_bank_data)
+        used, slack = data["used"], data["slack"]
+        per_bank.append((used, slack))
+        free_space += slack
 
-	free_percent = 100 * free_space / total_size
-	print(f'Free space: {free_space}/{total_size} ({free_percent:.2f}%)')
-	if print_bank != 'none':
-		print()
-		print('bank, used, free')
-		for bank in range(num_banks):
-			used, slack = per_bank[bank]
-			if print_bank in {'all', bank}:
-				print(f'${bank:02X}, {used}, {slack}')
+    free_percent = 100 * free_space / total_size
+    print(f"Free space: {free_space}/{total_size} ({free_percent:.2f}%)")
+    if print_bank != "none":
+        print()
+        print("bank, used, free")
+        for bank in range(num_banks):
+            used, slack = per_bank[bank]
+            if print_bank in {"all", bank}:
+                print(f"${bank:02X}, {used}, {slack}")
 
-if __name__ == '__main__':
-	main()
+
+if __name__ == "__main__":
+    main()

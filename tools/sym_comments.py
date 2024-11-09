@@ -13,43 +13,45 @@ SPDX-License-Identifier: MIT
 import sys
 import re
 
+
 def main():
-	if len(sys.argv) != 3:
-		print(f'Usage: {sys.argv[0]} file.asm project.sym > file_commented.asm', file=sys.stderr)
-		sys.exit(1)
+    if len(sys.argv) != 3:
+        print(f"Usage: {sys.argv[0]} file.asm project.sym > file_commented.asm", file=sys.stderr)
+        sys.exit(1)
 
-	wram_name = sys.argv[1]
-	sym_name = sys.argv[2]
+    wram_name = sys.argv[1]
+    sym_name = sys.argv[2]
 
-	sym_def_rx = re.compile(r'(^{sym})(:.*)|(^\.{sym})(.*)'.format(sym=r'[A-Za-z_][A-Za-z0-9_#@]*'))
+    sym_def_rx = re.compile(r"(^{sym})(:.*)|(^\.{sym})(.*)".format(sym=r"[A-Za-z_][A-Za-z0-9_#@]*"))
 
-	sym_addrs = {}
-	with open(sym_name, 'r', encoding='utf-8') as file:
-		for line in file:
-			line = line.split(';', 1)[0].rstrip()
-			parts = line.split(' ', 1)
-			if len(parts) != 2:
-				continue
-			addr, sym = parts
-			sym_addrs[sym] = addr
+    sym_addrs = {}
+    with open(sym_name, "r", encoding="utf-8") as file:
+        for line in file:
+            line = line.split(";", 1)[0].rstrip()
+            parts = line.split(" ", 1)
+            if len(parts) != 2:
+                continue
+            addr, sym = parts
+            sym_addrs[sym] = addr
 
-	with open(wram_name, 'r', encoding='utf-8') as file:
-		cur_label = None
-		for line in file:
-			line = line.rstrip()
-			if (m := re.match(sym_def_rx, line)):
-				sym, rest = m.group(1), m.group(2)
-				if sym is None and rest is None:
-					sym, rest = m.group(3), m.group(4)
-				key = sym
-				if not sym.startswith('.'):
-					cur_label = sym
-				elif cur_label:
-					key = cur_label + sym
-				if key in sym_addrs:
-					addr = sym_addrs[key]
-					line = f"{sym}{rest} ; {addr}"
-			print(line)
+    with open(wram_name, "r", encoding="utf-8") as file:
+        cur_label = None
+        for line in file:
+            line = line.rstrip()
+            if m := re.match(sym_def_rx, line):
+                sym, rest = m.group(1), m.group(2)
+                if sym is None and rest is None:
+                    sym, rest = m.group(3), m.group(4)
+                key = sym
+                if not sym.startswith("."):
+                    cur_label = sym
+                elif cur_label:
+                    key = cur_label + sym
+                if key in sym_addrs:
+                    addr = sym_addrs[key]
+                    line = f"{sym}{rest} ; {addr}"
+            print(line)
 
-if __name__ == '__main__':
-	main()
+
+if __name__ == "__main__":
+    main()
